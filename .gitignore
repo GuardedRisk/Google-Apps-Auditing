@@ -1,3 +1,4 @@
 *.ini
 *.pyc
 dist/
+client_secrets.json
