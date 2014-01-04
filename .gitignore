@@ -2,3 +2,4 @@
 *.pyc
 dist/
 client_secrets.json
+*.egg-info
