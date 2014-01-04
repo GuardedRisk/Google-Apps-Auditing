@@ -8,6 +8,7 @@ CHANGES = open(os.path.join(here, 'CHANGES')).read()
 
 requires = [
         'oauth2client',
+        'google-api-python-client',
     ]
 
 tests_require = []
