@@ -50,6 +50,7 @@ setup(name='acctwatch',
       entry_points="""\
       [console_scripts]
       acctwatch = acctwatch.acctwatch:main
+      acctwatch_configcheck = acctwatch.configcheck:main
       """,
       )
 
