@@ -16,24 +16,6 @@ parser = argparse.ArgumentParser(
         )
 
 
-# CLIENT_SECRETS is name of a file containing the OAuth 2.0 information for this
-# application, including client_id and client_secret. You can see the Client ID
-# and Client secret on the APIs page in the Cloud Console:
-# <https://cloud.google.com/console>
-CLIENT_SECRETS = os.path.join(os.getcwd(), 'client_secrets.json')
-
-# Set up a Flow object to be used for authentication.
-# Add one or more of the following scopes. PLEASE ONLY ADD THE SCOPES YOU
-# NEED. For more information on using scopes please see
-# <https://developers.google.com/+/best-practices>.
-FLOW = client.flow_from_clientsecrets(CLIENT_SECRETS,
-        scope=[
-            'https://www.googleapis.com/auth/admin.reports.audit.readonly',
-            'https://www.googleapis.com/auth/admin.reports.usage.readonly',
-            ],
-        message=tools.message_if_missing(CLIENT_SECRETS)
-        )
-
 
 def main(argv=None):
     if argv == None:
@@ -41,6 +23,17 @@ def main(argv=None):
     # Parse the command-line flags.
     flags = parser.parse_args(argv[1:])
 
+    # Set up a Flow object to be used for authentication.
+    # Add one or more of the following scopes. PLEASE ONLY ADD THE SCOPES YOU
+    # NEED. For more information on using scopes please see
+    # <https://developers.google.com/+/best-practices>.
+    FLOW = client.flow_from_clientsecrets(CLIENT_SECRETS,
+            scope=[
+                'https://www.googleapis.com/auth/admin.reports.audit.readonly',
+                'https://www.googleapis.com/auth/admin.reports.usage.readonly',
+                ],
+            message=tools.message_if_missing(CLIENT_SECRETS)
+            )
 
     # If the credentials don't exist or are invalid run through the native client
     # flow. The Storage object will ensure that if successful the good
