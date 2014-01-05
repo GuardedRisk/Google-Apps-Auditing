@@ -2,6 +2,10 @@ import argparse
 import httplib2
 import os
 import sys
+from ConfigParser import (
+        SafeConfigParser,
+        NoOptionError,
+        )
 
 from apiclient import discovery
 from oauth2client import file
@@ -14,14 +18,31 @@ parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[tools.argparser]
         )
+parser.add_argument('--section', nargs='?', help='The section to read from the configuration file.', default='DEFAULT')
+parser.add_argument('config', help='Configuration file.')
 
-
-
-def main(argv=None):
-    if argv == None:
-        argv = sys.argv
+def main():
     # Parse the command-line flags.
-    flags = parser.parse_args(argv[1:])
+    flags = parser.parse_args()
+
+    config_defaults = {}
+    config_defaults['here'] = os.path.dirname(os.path.abspath(flags.config))
+    config = SafeConfigParser(config_defaults)
+    config.readfp(open(flags.config))
+
+    if flags.section != 'DEFAULT' and not config.has_section(flags.section):
+        parser.error('Specified section doesn\'t exist in configuration.')
+
+    try:
+        # CLIENT_SECRETS is name of a file containing the OAuth 2.0 information for this
+        # application, including client_id and client_secret. You can see the Client ID
+        # and Client secret on the APIs page in the Cloud Console:
+        # <https://cloud.google.com/console>
+        CLIENT_SECRETS = config.get(flags.section, 'secrets')
+        CLIENT_CREDENTIALS = config.get(flags.section, 'credentials')
+        INTERVAL = int(config.get(flags.section, 'interval'))
+    except NoOptionError as e:
+        parser.error('Unable to get required parameter from config: {}'.format(e))
 
     # Set up a Flow object to be used for authentication.
     # Add one or more of the following scopes. PLEASE ONLY ADD THE SCOPES YOU
@@ -38,7 +59,7 @@ def main(argv=None):
     # If the credentials don't exist or are invalid run through the native client
     # flow. The Storage object will ensure that if successful the good
     # credentials will get written back to the file.
-    storage = file.Storage('secret_credentials.dat')
+    storage = file.Storage(CLIENT_CREDENTIALS)
     credentials = storage.get()
     if credentials is None or credentials.invalid:
         credentials = tools.run_flow(FLOW, storage, flags)
@@ -87,4 +108,4 @@ def main(argv=None):
 #
 #   https://developers.google.com/api-client-library/python/start/get_started
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
