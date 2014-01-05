@@ -8,7 +8,7 @@ redflag_email = admin@example.com hr@example.com
 
 interval = 30
 
-geopip.enabled = False
+geoip.enabled = False
 
 [mygapps]
 
