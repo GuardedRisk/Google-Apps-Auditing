@@ -9,7 +9,11 @@ CHANGES = open(os.path.join(here, 'CHANGES')).read()
 requires = [
         'oauth2client',
         'google-api-python-client',
-    ]
+        ]
+
+requires_with_geoip = requires + [
+        'geoip2[DB]',
+        ]
 
 tests_require = []
 
@@ -41,6 +45,7 @@ setup(name='acctwatch',
       extras_require = {
           'develop': develop_requires,
           'testing': testing_requires,
+          'geoip': requires_with_geoip,
           },
       entry_points="""\
       [console_scripts]
