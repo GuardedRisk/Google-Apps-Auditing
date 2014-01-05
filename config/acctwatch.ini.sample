@@ -1,0 +1,16 @@
+[DEFAULT]
+
+secrets = %(here)s/client_secrets.json
+
+daily_email = admin@example.com
+weekly_email = admin@example.com
+redflag_email = admin@example.com hr@example.com
+
+interval = 30
+
+geopip.enabled = False
+
+[mygapps]
+
+credentials = %(here)s/%(__name__)s.secret_credentials.dat
+
