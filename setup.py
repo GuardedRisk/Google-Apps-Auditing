@@ -9,6 +9,7 @@ CHANGES = open(os.path.join(here, 'CHANGES')).read()
 requires = [
         'oauth2client',
         'google-api-python-client',
+        'sqlalchemy',
         ]
 
 requires_with_geoip = requires + [
@@ -51,6 +52,8 @@ setup(name='acctwatch',
       [console_scripts]
       acctwatch = acctwatch.acctwatch:main
       acctwatch_configcheck = acctwatch.configcheck:main
+      acctwatch_initdb = acctwatch.initdb:main
+      acctwatch_destroydb = acctwatch.destroydb:main
       """,
       )
 
