@@ -4,13 +4,21 @@ secrets = %(here)s/client_secrets.json
 
 daily_email = admin@example.com
 weekly_email = admin@example.com
-redflag_email = admin@example.com hr@example.com
+invalidcredentials_email = admin@example.com
 
-interval = 30
+# This is how often acctwatch should check for new login entries, setting this
+# to anything less than 1 minute (60) doesn't make much sense, since Google
+# won't add new logins to the list here for up to 5 minutes (in testing), this
+# is set to 30 minutes, since this provides enough resolution.
 
-geoip.enabled = False
+interval = 1800
+
+geoip_db = /path/to/GeoLite2-City.mmdb
+
+sqlalchemy.echo = False
 
 [mygapps]
 
 credentials = %(here)s/%(__name__)s.secret_credentials.dat
+sqlalchemy.url = sqlite:///%(here)s/%(__name__)s.db_storage.db
 
