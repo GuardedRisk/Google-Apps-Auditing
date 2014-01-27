@@ -13,14 +13,10 @@ from config import Configuration
 try:
     import geoip2.database as geoipdb
 except ImportError:
-    geoipdb = None
+    print ("GeoIP is missing, please install dependency")
 
 def main():
     config = Configuration()
-    if config.WITH_GEOIP and not geoipdb:
-        print ("GeoIP is enabled, but unable to import module, please check installation. Disabling.")
-        config.WITH_GEOIP = False
-
     credentials = config.get_credentials()
 
     # Create an httplib2.Http object to handle our HTTP requests and authorize it
@@ -36,7 +32,7 @@ def main():
         login_list = activities.list(userKey='all', applicationName='login', maxResults=1000).execute()
         print("Success!")
     except client.AccessTokenRefreshError:
-        print("Failure. Access token is invalid.")
+        print("Failure. Access token is invalid. Please re-run the tool to get a new access token.")
 
 if __name__ == '__main__':
     main()
