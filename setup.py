@@ -10,9 +10,6 @@ requires = [
         'oauth2client',
         'google-api-python-client',
         'sqlalchemy',
-        ]
-
-requires_with_geoip = requires + [
         'geoip2[DB]',
         ]
 
@@ -21,9 +18,6 @@ tests_require = []
 testing_requires =  tests_require + [
     'nose',
     'coverage',
-    ]
-
-develop_requires = [
     ]
 
 setup(name='acctwatch',
@@ -44,9 +38,7 @@ setup(name='acctwatch',
       install_requires=requires,
       tests_require=tests_require,
       extras_require = {
-          'develop': develop_requires,
           'testing': testing_requires,
-          'geoip': requires_with_geoip,
           },
       entry_points="""\
       [console_scripts]
