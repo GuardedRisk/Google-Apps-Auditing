@@ -1,25 +1,31 @@
 import httplib2
 import os
 import sys
+import traceback
 
+import time
+import datetime
+
+import apiclient
 from apiclient import discovery
 from oauth2client import file
 from oauth2client import client
 from oauth2client import tools
 
+from sqlalchemy import engine_from_config
+from sqlalchemy.exc import IntegrityError
+
 from config import Configuration
+from models import *
 
 try:
     import geoip2.database as geoipdb
+    from geoip2.errors import AddressNotFoundError
 except ImportError:
-    geoipdb = None
+    print ("GeoIP is missing, please install dependency")
 
 def main():
     config = Configuration()
-    if config.WITH_GEOIP and not geoipdb:
-        print ("GeoIP is enabled, but unable to import module, please check installation. Disabling.")
-        config.WITH_GEOIP = False
-
     credentials = config.get_credentials()
 
     # Create an httplib2.Http object to handle our HTTP requests and authorize it
@@ -31,25 +37,100 @@ def main():
     service = discovery.build('admin', 'reports_v1', http=http)
     activities = service.activities()
 
-    try:
-        login_list = activities.list(userKey='all', applicationName='login', maxResults=1000).execute()
+    settings = config.settings
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    DBSession.configure(bind=engine)
 
-        for login_item in login_list['items']:
-            print login_item['actor']['email']
-            print '\t' + login_item['ipAddress']
-            print '\t' + login_item['id']['time']
+    geoip_reader = geoipdb.Reader(settings['geoip_db'])
 
-            login_event = login_item['events']
-            for event in login_event:
-                print '\t' + event['type'] + ': ' + event['name']
-                if 'parameters' not in event:
-                    continue
-                for param in event['parameters']:
-                    print '\t\t' + param['name'] + ': ' + param['value']
+    print ("Started watching for new logins")
 
-    except client.AccessTokenRefreshError:
-      print ("The credentials have been revoked or expired, please re-run"
-        "the application to re-authorize")
+    while 1:
+        try:
+            all_new = True
+
+            request = activities.list(userKey='all', applicationName='login', maxResults=1000)
+            response = None
+
+            while all_new:
+                response = request.execute()
+
+                for login_item in response['items']:
+                    login_id = login_item['id']
+
+                    exists = DBSession.query(LoginItem).filter(LoginItem.guid == login_id['uniqueQualifier']).first()
+
+                    if exists:
+                        all_new = False
+                        continue
+
+
+
+                    litem = LoginItem(guid=login_id['uniqueQualifier'], time=datetime.datetime.strptime(login_id['time'], '%Y-%m-%dT%H:%M:%S.%fZ'), ip=login_item['ipAddress'])
+                    lactor = DBSession.query(Actor).filter(Actor.id == login_item['actor']['profileId']).first()
+
+                    if lactor:
+                        litem.actor.append(lactor)
+                    else:
+                        litem.actor.append(Actor(id=login_item['actor']['profileId'], email=login_item['actor']['email']))
+
+
+                    try:
+                        geoip = geoip_reader.city(login_item['ipAddress'])
+                        geoip_results = '{}, {}, {}'.format(geoip.city.name, geoip.subdivisions.most_specific.name, geoip.country.name)
+
+                        llocation = DBSession.query(Location).filter(Location.location == geoip_results).first()
+
+                        if llocation:
+                            litem.location.append(llocation)
+                        else:
+                            litem.location.append(Location(location=geoip_results))
+
+                        print ("New login found for \"{}\" at \"{}\", from \"{}\" ({})".format(login_item['actor']['email'], login_id['time'], geoip_results, login_item['ipAddress']))
+                    except AddressNotFoundError:
+                        print ("New login found for \"{}\" at \"{}\", from \"unknown\" ({})".format(login_item['actor']['email'], login_id['time'], login_item['ipAddress']))
+
+                    login_event = login_item['events']
+                    for event in login_event:
+                        if event['type'] == 'login':
+                            if event['name'] == 'login_success':
+                                litem.success = True
+                            if event['name'] == 'login_failure':
+                                litem.success = False
+                                failed_params = event['parameters']
+
+                                litem.failure = ''
+                                for fail_param in failed_params:
+                                    if fail_param['name'] == 'login_type':
+                                        litem.failure = '{}{}'.format(fail_param['value'], litem.failure)
+                                    if fail_param['name'] == 'login_failure_type':
+                                        litem.failure = '{} - {}'.format(litem.failure, fail_param['value'])
+
+                    DBSession.add(litem)
+                    DBSession.commit()
+
+                if all_new == True:
+                    old_request = request
+                    request = activities.list_next(old_request, response)
+
+                    if request is None:
+                        all_new = False
+                        break
+
+        except client.AccessTokenRefreshError:
+            print ("The credentials have been revoked or expired, please re-run"
+                    "the application to re-authorize")
+        except apiclient.errors.HttpError as e:
+            print ("Google returned us an error. {}".format(e))
+        except KeyboardInterrupt:
+            print ("Received the signal to quit")
+            exit(0)
+        except:
+            print ("Some other error occured...")
+            traceback.print_exc()
+
+        time.sleep(config.INTERVAL)
+
 
 
 # For more information on the Admin Reports API you can visit:
