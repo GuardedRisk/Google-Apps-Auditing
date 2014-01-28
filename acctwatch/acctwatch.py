@@ -70,9 +70,9 @@ def main():
                     lactor = DBSession.query(Actor).filter(Actor.id == login_item['actor']['profileId']).first()
 
                     if lactor:
-                        litem.actor.append(lactor)
+                        litem.actor = lactor
                     else:
-                        litem.actor.append(Actor(id=login_item['actor']['profileId'], email=login_item['actor']['email']))
+                        litem.actor = Actor(id=login_item['actor']['profileId'], email=login_item['actor']['email'])
 
 
                     try:
@@ -82,9 +82,9 @@ def main():
                         llocation = DBSession.query(Location).filter(Location.location == geoip_results).first()
 
                         if llocation:
-                            litem.location.append(llocation)
+                            litem.location = llocation
                         else:
-                            litem.location.append(Location(location=geoip_results))
+                            litem.location = Location(location=geoip_results)
 
                         print ("New login found for \"{}\" at \"{}\", from \"{}\" ({})".format(login_item['actor']['email'], login_id['time'], geoip_results, login_item['ipAddress']))
                     except AddressNotFoundError:
