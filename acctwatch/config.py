@@ -23,9 +23,11 @@ def str2bool(truthy):
     return truthy[0].lower() in ('y', 't')
 
 class Configuration(object):
-    def __init__(self):
+    def __init__(self, extra_parser=None):
+        self.parser = parser if not extra_parser else extra_parser
+
         # Parse the command-line flags.
-        flags = parser.parse_args()
+        flags = self.parser.parse_args()
         self.flags = flags
 
         config_defaults = {}
