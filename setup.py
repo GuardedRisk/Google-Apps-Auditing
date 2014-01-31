@@ -46,6 +46,7 @@ setup(name='acctwatch',
       acctwatch_configcheck = acctwatch.configcheck:main
       acctwatch_initdb = acctwatch.initdb:main
       acctwatch_destroydb = acctwatch.destroydb:main
+      acctwatch_email = acctwatch.sendmail:main
       """,
       )
 
