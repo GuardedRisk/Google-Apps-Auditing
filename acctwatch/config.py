@@ -79,3 +79,22 @@ class Configuration(object):
             self.credentials = tools.run_flow(self.FLOW, self.storage, self.flags)
 
         return self.credentials
+
+trueset = frozenset(('t', 'true', 'y', 'yes'))
+
+def asbool(s):
+    if s is None:
+        return False
+    if isinstance(s, bool):
+        return s
+    s = str(s).strip()
+    return s.lower() in trueset
+
+def aslist(value):
+    values = filter(None, [x.strip() for x in value.splitlines()])
+
+    result = []
+    for value in values:
+        subvalues = value.split()
+        result.extend(subvalues)
+    return result
