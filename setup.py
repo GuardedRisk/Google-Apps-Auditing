@@ -15,9 +15,13 @@ requires = [
 
 tests_require = []
 
-testing_requires =  tests_require + [
+testing_requires = tests_require + [
     'nose',
     'coverage',
+    ]
+
+docs_requires = requires + [
+    'sphinx',
     ]
 
 setup(name='acctwatch',
@@ -39,6 +43,7 @@ setup(name='acctwatch',
       tests_require=tests_require,
       extras_require = {
           'testing': testing_requires,
+          'docs': docs_requires,
           },
       entry_points="""\
       [console_scripts]
