@@ -1,0 +1,18 @@
+Google Apps Auditing
+====================
+
+The tool acctwatch is used to monitor login's for Google Apps for Domains
+accounts, and send periodic emails to designated email addresses to notify of
+logins, failed logins and what locations these logins are coming from based
+upon GeoIP information.
+
+This information can then be used to make sure that user accounts have not been
+compromised, or simply logged for a variety of other reasons.
+
+Limitations
+-----------
+
+Due to limitations in the data provided by Google, this will only check logins
+that occur on the website, IMAP logins, Calendar logins and others are not
+provided unfortunately, thus this tool does not provide a complete picture of
+all logins.
